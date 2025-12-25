@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRM @ OptimoGroup — Case Study</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- GSAP & ScrollTo -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f0f4f8;
+            color: #1e293b;
+            overflow: hidden;
+        }
+
+        h1, h2, h3, h4, h5, .display-font { font-family: 'Outfit', sans-serif; }
+
+        /* Background Animation */
+        .gradient-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;
+            background: radial-gradient(at 0% 0%, hsla(253,16%,7%,0.05) 0, transparent 50%), 
+                        radial-gradient(at 50% 0%, hsla(225,39%,30%,0.05) 0, transparent 50%), 
+                        radial-gradient(at 100% 0%, hsla(339,49%,30%,0.05) 0, transparent 50%);
+            background-size: 200% 200%;
+            animation: gradient-move 20s ease infinite;
+        }
+        @keyframes gradient-move { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        /* Components */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+        }
+
+        .sidebar-link {
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-link.active {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            border-left-color: var(--primary);
+        }
+
+        .content-card {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .content-card.active {
+            display: block;
+        }
+
+        .scroll-area::-webkit-scrollbar { width: 6px; }
+        .scroll-area::-webkit-scrollbar-track { background: transparent; }
+        .scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        
+        /* 9-Box Grid */
+        .nine-box-cell {
+            aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .nine-box-cell:hover { transform: scale(1.05) translateY(-5px); z-index: 10; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+
+        /* AMO Cards */
+        .amo-card {
+            transition: all 0.3s ease;
+        }
+        .amo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.2);
+        }
+
+        /* ADDIE Step */
+        .addie-step {
+            transition: all 0.3s ease;
+            opacity: 0.5;
+            transform: scale(0.9);
+        }
+        .addie-step.active {
+            opacity: 1;
+            transform: scale(1);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.15);
+        }
+
+        /* Kirkpatrick Pyramid */
+        .kp-level {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .kp-level:hover {
+            transform: scaleX(1.02) scaleY(1.05);
+            filter: brightness(1.1);
+        }
+
+        /* Conclusion Pillar */
+        .pillar {
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        .pillar.built {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="h-screen flex text-slate-800">
+
+    <div class="gradient-bg"></div>
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="w-64 bg-white/90 backdrop-blur-xl border-r border-white/20 flex-shrink-0 flex flex-col z-20">
+        <div class="p-6 border-b border-gray-100">
+            <div class="flex items-center gap-2 text-indigo-600">
+                <i class="ph-fill ph-circles-three-plus text-2xl"></i>
+                <span class="font-bold tracking-tight text-lg display-font">OptimoGroup</span>
+            </div>
+            <div class="text-[10px] uppercase font-bold text-gray-400 mt-1 tracking-widest">Case Study Dashboard</div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-4 scroll-area">
+            <div class="px-4 mb-2 text-xs font-bold text-gray-400 uppercase">Modules</div>
+            <ul class="space-y-1" id="sidebar-list">
+                <!-- Generated by JS -->
+            </ul>
+        </nav>
+
+        <div class="p-4 border-t border-gray-100 bg-gray-50/50">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs">HR</div>
+                <div class="flex-1">
+                    <div class="text-xs font-bold text-gray-700">Course Progress</div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                        <div id="global-progress" class="bg-indigo-500 h-1.5 rounded-full w-0 transition-all duration-500"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN AREA -->
+    <main class="flex-1 flex flex-col relative overflow-hidden">
+        
+        <!-- TOP BAR -->
+        <header class="h-16 glass-panel !rounded-none !border-x-0 !border-t-0 flex items-center justify-between px-8 z-10">
+            <div class="text-sm font-bold text-gray-500">Human Resource Management Case Study</div>
+            <div class="flex items-center gap-4">
+                <button onclick="openModal('library')" class="px-3 py-1.5 text-xs font-bold text-gray-600 hover:text-indigo-600 bg-white border border-gray-200 rounded-lg hover:border-indigo-200 transition">Evidence Library</button>
+                <button onclick="navigateTo('quiz')" class="px-4 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-lg shadow-indigo-200 transition flex items-center gap-2">
+                    <i class="ph-bold ph-exam"></i> Final Quiz
+                </button>
+            </div>
+        </header>
+
+        <!-- CONTENT SCROLL AREA -->
+        <div class="flex-1 overflow-y-auto p-8 scroll-area relative" id="main-scroll">
+            
+            <!-- 0. HOME SCREEN -->
+            <section id="home" class="content-card active max-w-5xl mx-auto">
+                <div class="glass-panel p-10 mb-8 border-l-4 border-indigo-500 relative overflow-hidden group">
+                    <div class="absolute right-0 top-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition duration-700"></div>
+                    <h1 class="text-4xl md:text-5xl font-bold text-slate-800 mb-4">Human Resource Management<br>at OptimoGroup</h1>
+                    <p class="text-lg text-slate-500 mb-2">A Case Study on transitioning from informal management to strategic HR.</p>
+                    <p class="text-sm text-slate-400 font-bold uppercase tracking-wider mb-8">Student Name • Course • Date</p>
+                    <button onclick="navigateTo('topic1')" class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg hover:scale-105 transition flex items-center gap-2">Start Presentation <i class="ph-bold ph-arrow-right"></i></button>
+                </div>
+            </section>
+
+            <!-- TOPIC 1 -->
+            <section id="topic1" class="content-card max-w-6xl mx-auto">
+                <div class="mb-6"><span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase">Topic 01</span></div>
+                <h2 class="text-4xl font-bold mb-8 text-slate-800">Company Overview</h2>
+                <div class="grid lg:grid-cols-2 gap-8 mb-10">
+                    <div class="glass-panel p-8 flex flex-col justify-between">
+                        <div><h3 class="text-2xl font-bold text-slate-800 mb-4">iGaming & IT Ecosystem</h3><p class="text-slate-600 leading-relaxed mb-6">OptimoGroup develops multiple digital projects simultaneously. All development is handled <strong>internally</strong>.</p></div>
+                        <div class="grid grid-cols-2 gap-4"><div class="bg-white/50 p-4 rounded-xl border border-white"><h5 class="text-xs font-bold uppercase text-indigo-500 mb-2">Core Platforms</h5><ul class="space-y-2 text-sm font-medium text-slate-700"><li class="flex items-center gap-2"><i class="ph-fill ph-game-controller text-indigo-500"></i> OptimoBet</li><li class="flex items-center gap-2"><i class="ph-fill ph-package text-indigo-500"></i> GoRush.gg</li></ul></div><div class="bg-white/50 p-4 rounded-xl border border-white"><h5 class="text-xs font-bold uppercase text-yellow-600 mb-2">Innovation</h5><ul class="space-y-2 text-sm font-medium text-slate-700"><li class="flex items-center gap-2"><i class="ph-fill ph-crown text-yellow-500"></i> King's Move</li><li class="flex items-center gap-2"><i class="ph-fill ph-trend-up text-blue-500"></i> Optimo Score</li></ul></div></div>
+                    </div>
+                    <div class="glass-panel p-8 flex flex-col justify-center"><h4 class="text-xl font-bold text-slate-800 mb-4">Team Structure</h4><div class="flex items-end gap-3 mb-6"><span class="text-6xl font-bold text-indigo-600 leading-none">~70</span><span class="text-sm font-bold text-slate-500 uppercase tracking-wide mb-2">On-site Employees</span></div><p class="text-slate-600 leading-relaxed mb-6">Supported by a flexible network of freelancers. This structure allows <span class="font-bold text-slate-800">fast scaling</span> but creates heavy coordination demands on HR.</p><div class="p-4 bg-slate-100 rounded-xl border border-slate-200"><p class="text-sm font-bold text-slate-700 uppercase mb-1">Current Challenge</p><p class="text-sm text-slate-600">HR is reactive, focusing on daily workflow issues instead of strategic planning.</p></div></div>
+                </div>
+                <div class="mb-10"><div class="glass-panel p-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-3xl"><div class="bg-white rounded-[18px] p-8 md:p-10"><div class="text-center max-w-3xl mx-auto mb-10"><h3 class="text-3xl font-bold text-slate-800 mb-3">The AMO Strategic Framework</h3><p class="text-lg text-slate-500">To move from "Scaling" to "Sustainable Growth," OptimoGroup must view employees as <strong>Human Capital</strong> using this formula:</p></div><div class="grid md:grid-cols-3 gap-6 text-center"><div class="amo-card group p-6 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-indigo-50 hover:border-indigo-100"><div class="w-16 h-16 mx-auto bg-white rounded-full shadow-md flex items-center justify-center text-2xl font-bold text-indigo-600 mb-4 group-hover:scale-110 transition">A</div><h4 class="text-xl font-bold text-slate-800 mb-2">Ability</h4><p class="text-sm text-slate-500">Skills, Knowledge, and Competencies required to perform.</p></div><div class="amo-card group p-6 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-pink-50 hover:border-pink-100"><div class="w-16 h-16 mx-auto bg-white rounded-full shadow-md flex items-center justify-center text-2xl font-bold text-pink-600 mb-4 group-hover:scale-110 transition">M</div><h4 class="text-xl font-bold text-slate-800 mb-2">Motivation</h4><p class="text-sm text-slate-500">Engagement, Incentives, and Culture that drives effort.</p></div><div class="amo-card group p-6 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-teal-50 hover:border-teal-100"><div class="w-16 h-16 mx-auto bg-white rounded-full shadow-md flex items-center justify-center text-2xl font-bold text-teal-600 mb-4 group-hover:scale-110 transition">O</div><h4 class="text-xl font-bold text-slate-800 mb-2">Opportunity</h4><p class="text-sm text-slate-500">Autonomy, Resources, and Role design to allow contribution.</p></div></div></div></div></div>
+                <div class="glass-panel p-10 bg-slate-900 text-white relative overflow-hidden"><div class="grid md:grid-cols-2 gap-12 items-center relative z-10"><div><h3 class="font-bold text-2xl mb-2 text-white">Interactive: The Growth Engine</h3><p class="text-gray-400 mb-8">Balance the three AMO factors to unlock sustainable growth.</p><div class="space-y-6"><div><div class="flex justify-between text-xs font-bold uppercase text-indigo-300 mb-2"><span>Ability</span><span id="val-a">50%</span></div><input type="range" class="w-full accent-indigo-500 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer" oninput="updateGrowthEngine()" id="ge-ability" value="50"></div><div><div class="flex justify-between text-xs font-bold uppercase text-pink-300 mb-2"><span>Motivation</span><span id="val-m">50%</span></div><input type="range" class="w-full accent-pink-500 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer" oninput="updateGrowthEngine()" id="ge-motivation" value="50"></div><div><div class="flex justify-between text-xs font-bold uppercase text-teal-300 mb-2"><span>Opportunity</span><span id="val-o">50%</span></div><input type="range" class="w-full accent-teal-500 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer" oninput="updateGrowthEngine()" id="ge-opportunity" value="50"></div></div></div><div class="bg-white/5 border border-white/10 rounded-2xl p-8 text-center flex flex-col justify-center min-h-[250px]" id="ge-card"><div id="ge-icon" class="text-5xl mb-4">⚖️</div><h4 class="text-2xl font-bold mb-2" id="ge-status">Balanced Average</h4><p class="text-sm text-gray-400" id="ge-desc">The organization is functioning, but not optimizing its potential.</p><div class="mt-6 w-full bg-gray-700 rounded-full h-2 overflow-hidden"><div id="ge-bar" class="bg-yellow-500 h-2 transition-all duration-500 w-1/2"></div></div></div></div><div class="absolute right-0 bottom-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div></div>
+            </section>
+
+            <!-- TOPIC 2: HR ROLE -->
+            <section id="topic2" class="content-card max-w-6xl mx-auto">
+                <div class="mb-6"><span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase">Topic 02</span></div>
+                <h2 class="text-4xl font-bold mb-8 text-slate-800">Role of HR</h2>
+                <div class="grid lg:grid-cols-2 gap-8 mb-10"><div class="glass-panel p-8"><h4 class="text-xl font-bold text-slate-800 mb-4">Current Reality</h4><div class="space-y-4 text-sm text-slate-600 leading-relaxed"><p><strong>1:70 Ratio:</strong> One HR manager for 70 employees creates a bottleneck.</p><p><strong>CEO-Driven:</strong> Strategic decisions are made by the CEO. HR executes.</p><p><strong>Service Provider Model:</strong> HR focuses on admin and ops, lacking a strategic seat.</p></div><div class="mt-6 p-4 bg-slate-100 rounded-xl border border-slate-200"><h5 class="text-xs font-bold text-slate-700 uppercase mb-2 flex items-center gap-2"><i class="ph-fill ph-gavel"></i> Policy vs Practice</h5><p class="text-xs text-slate-500">Internal regulations exist on paper but are rarely used.</p></div></div><div class="glass-panel p-8 border-l-4 border-indigo-500 bg-white/60 flex flex-col justify-between"><div><h4 class="text-xl font-bold text-indigo-700 mb-4">Evaluation & Recommendation</h4><p class="text-base text-slate-700 mb-6 leading-relaxed">While HR supports the CEO's decisions, it lacks a <strong>Strategic Role</strong>. The company should move from a <strong>"Service Provider"</strong> model to a <strong>"Strategic Partner"</strong> model.</p></div><div class="p-5 bg-indigo-50 rounded-xl border border-indigo-100"><p class="text-sm font-bold text-indigo-900 mb-3">The Path Forward:</p><p class="text-sm text-slate-600 leading-relaxed mb-4">By <span class="font-bold text-indigo-600">automating administrative tasks</span>, HR can focus on <strong>Workforce Planning</strong>.</p></div></div></div>
+                <div class="glass-panel p-8 bg-slate-900 text-white flex flex-col relative overflow-hidden"><div class="relative z-10"><div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8"><div><h3 class="text-2xl font-bold mb-2">Interactive: Capacity Shifter</h3><p class="text-gray-400 text-sm">Visualize unlocking strategic time.</p></div><div class="mt-4 md:mt-0 px-4 py-2 bg-white/10 rounded-lg border border-white/20"><span class="text-xs font-bold uppercase text-gray-400">Current:</span><span id="role-title" class="text-sm font-bold text-red-400 ml-2">Service Provider</span></div></div><div class="w-full h-14 bg-gray-800 rounded-xl overflow-hidden flex mb-8 border border-gray-700 relative shadow-inner"><div id="bar-admin" class="h-full bg-red-500 flex items-center justify-center text-xs font-bold uppercase tracking-wider transition-all duration-700" style="width: 80%">Admin (80%)</div><div id="bar-ops" class="h-full bg-orange-500 flex items-center justify-center text-xs font-bold uppercase tracking-wider transition-all duration-700" style="width: 20%">Ops (20%)</div><div id="bar-strat" class="h-full bg-green-500 flex items-center justify-center text-xs font-bold uppercase tracking-wider text-black overflow-hidden transition-all duration-700" style="width: 0%"></div></div><div class="grid md:grid-cols-2 gap-4"><button onclick="shiftCapacity('auto')" id="btn-auto" class="flex items-center justify-between p-5 bg-white/5 hover:bg-white/10 rounded-xl transition border border-white/10 group cursor-pointer"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-xl"><i class="ph-bold ph-robot"></i></div><div class="text-left"><div class="text-base font-bold text-white group-hover:text-indigo-300 transition">Automate Paperwork</div></div></div><div class="text-right"><span class="block text-xs font-bold text-red-400">-30% Admin</span><span class="block text-xs font-bold text-green-400">+30% Strategy</span></div></button><button onclick="shiftCapacity('hire')" id="btn-hire" class="flex items-center justify-between p-5 bg-white/5 hover:bg-white/10 rounded-xl transition border border-white/10 group cursor-pointer"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-lg bg-purple-600 flex items-center justify-center text-xl"><i class="ph-bold ph-users-three"></i></div><div class="text-left"><div class="text-base font-bold text-white group-hover:text-purple-300 transition">Delegate Screening</div></div></div><div class="text-right"><span class="block text-xs font-bold text-orange-400">-20% Ops</span><span class="block text-xs font-bold text-green-400">+20% Strategy</span></div></button></div><div id="strat-result" class="mt-8 p-6 bg-green-500/10 border border-green-500/30 rounded-xl hidden opacity-0 transition-all duration-500 transform translate-y-4"><div class="flex items-start gap-4"><div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 text-2xl shrink-0"><i class="ph-fill ph-rocket-launch"></i></div><div><h5 class="text-lg font-bold text-green-400 mb-2">Transformation Complete</h5><p class="text-sm text-green-100 leading-relaxed">Success! HR is now a <strong>Strategic Partner</strong> focused on <strong>Workforce Planning</strong>.</p></div></div></div></div></div>
+            </section>
+
+            <!-- TOPIC 3: RECRUITMENT -->
+            <section id="topic3" class="content-card max-w-6xl mx-auto">
+                <div class="mb-6"><span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase">Topic 03</span></div>
+                <h2 class="text-4xl font-bold mb-8 text-slate-800">Recruitment & Selection</h2>
+                
+                <div class="grid lg:grid-cols-2 gap-8 mb-10">
+                    <div class="glass-panel p-8">
+                        <h4 class="text-xl font-bold text-slate-800 mb-6">The Current Process</h4>
+                        <div class="relative pl-6 border-l-2 border-indigo-100 space-y-8">
+                            <div class="relative">
+                                <div class="absolute -left-[31px] bg-indigo-100 p-1.5 rounded-full border-4 border-white"><i class="ph-bold ph-lightbulb text-indigo-600"></i></div>
+                                <h5 class="text-sm font-bold text-slate-700">1. Needs Identification</h5>
+                                <p class="text-xs text-slate-500">CEO or Team Lead requests a new role.</p>
+                            </div>
+                            <div class="relative">
+                                <div class="absolute -left-[31px] bg-indigo-100 p-1.5 rounded-full border-4 border-white"><i class="ph-bold ph-linkedin-logo text-indigo-600"></i></div>
+                                <h5 class="text-sm font-bold text-slate-700">2. Sourcing</h5>
+                                <p class="text-xs text-slate-500">LinkedIn, Groups, Referrals. Fast & flexible.</p>
+                            </div>
+                            <div class="relative">
+                                <div class="absolute -left-[31px] bg-indigo-100 p-1.5 rounded-full border-4 border-white"><i class="ph-bold ph-chats text-indigo-600"></i></div>
+                                <h5 class="text-sm font-bold text-slate-700">3. Interviews</h5>
+                                <p class="text-xs text-slate-500">HR Screen → Tech Interview → CEO Final.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-8 bg-orange-50 border-l-4 border-orange-400">
+                        <h4 class="text-xl font-bold text-orange-600 mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-warning-circle"></i> The Challenge: Subjectivity
+                        </h4>
+                        <p class="text-sm text-slate-700 mb-4 leading-relaxed">
+                            While flexible, the process lacks formal assessment tools. Decisions are often based on <strong>"Gut Feeling"</strong> and communication style rather than structured scoring.
+                        </p>
+                        <div class="p-4 bg-white rounded-xl shadow-sm">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase text-slate-400">Speed</span>
+                                <div class="flex gap-1"><div class="w-8 h-2 bg-green-500 rounded"></div><div class="w-8 h-2 bg-green-500 rounded"></div><div class="w-8 h-2 bg-green-500 rounded"></div></div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase text-slate-400">Consistency</span>
+                                <div class="flex gap-1"><div class="w-8 h-2 bg-red-400 rounded"></div><div class="w-8 h-2 bg-gray-200 rounded"></div><div class="w-8 h-2 bg-gray-200 rounded"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-10">
+                    <div class="glass-panel p-8 bg-indigo-900 text-white relative overflow-hidden">
+                        <div class="relative z-10 grid md:grid-cols-2 gap-10 items-center">
+                            <div>
+                                <div class="inline-block px-3 py-1 bg-indigo-700 rounded-full text-xs font-bold uppercase mb-4 text-indigo-200">New Philosophy</div>
+                                <h3 class="text-3xl font-bold mb-4">"Hire Hard, Manage Easy"</h3>
+                                <p class="text-indigo-200 text-sm leading-relaxed mb-6">
+                                    Investing effort upfront in rigorous selection reduces management burden later. Shift from "filling seats" to "fitting talent."
+                                </p>
+                                <div class="flex gap-4">
+                                    <div class="flex items-center gap-2 text-xs font-bold uppercase bg-white/10 px-3 py-2 rounded-lg"><i class="ph-bold ph-check"></i> Person-Job Fit</div>
+                                    <div class="flex items-center gap-2 text-xs font-bold uppercase bg-white/10 px-3 py-2 rounded-lg"><i class="ph-bold ph-check"></i> Person-Org Fit</div>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="p-4 bg-white/10 border border-white/10 rounded-xl hover:bg-white/20 transition">
+                                    <h5 class="font-bold text-white mb-1 flex items-center gap-2"><i class="ph-fill ph-file-code"></i> Work Sample Tests</h5>
+                                    <p class="text-xs text-gray-300">Replace subjective talk with objective simulations (e.g., coding tasks).</p>
+                                </div>
+                                <div class="p-4 bg-white/10 border border-white/10 rounded-xl hover:bg-white/20 transition">
+                                    <h5 class="font-bold text-white mb-1 flex items-center gap-2"><i class="ph-fill ph-eye"></i> Realistic Job Previews (RJP)</h5>
+                                    <p class="text-xs text-gray-300">Show the pressure and chaos upfront to prevent early resignation.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="absolute right-0 top-0 w-64 h-64 bg-indigo-500/30 rounded-full blur-3xl"></div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-10 bg-slate-50 border border-slate-200 text-center">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Interactive: The RJP Simulator</h3>
+                    <p class="text-sm text-slate-500 mb-8">Test your approach. A candidate asks about the high-pressure environment.</p>
+                    <div class="max-w-xl mx-auto bg-white p-8 rounded-2xl shadow-lg border border-gray-100 relative">
+                        <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center text-2xl border-4 border-white shadow-sm">🤔</div>
+                        <h4 class="text-lg font-bold text-slate-800 mb-6 mt-2">"I heard the deadlines change constantly. Is it stressful?"</h4>
+                        <div class="grid grid-cols-2 gap-4" id="rjp-options">
+                            <button onclick="playRJP('sugar')" class="p-4 rounded-xl border-2 border-slate-100 hover:border-red-400 hover:bg-red-50 transition group text-left">
+                                <span class="block text-xs font-bold uppercase text-slate-400 mb-1">The "Sugarcoat"</span>
+                                <span class="text-sm font-bold text-slate-700 group-hover:text-red-600">"Oh no, we are very organized. It's chill."</span>
+                            </button>
+                            <button onclick="playRJP('real')" class="p-4 rounded-xl border-2 border-slate-100 hover:border-green-500 hover:bg-green-50 transition group text-left">
+                                <span class="block text-xs font-bold uppercase text-slate-400 mb-1">The "Realistic"</span>
+                                <span class="text-sm font-bold text-slate-700 group-hover:text-green-700">"Yes, it's chaotic and fast. You need resilience."</span>
+                            </button>
+                        </div>
+                        <div id="rjp-result" class="hidden mt-6 pt-6 border-t border-gray-100"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TOPIC 4: JOB ANALYSIS -->
+            <section id="topic4" class="content-card max-w-6xl mx-auto">
+                <div class="mb-6"><span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase">Topic 04</span></div>
+                <h2 class="text-4xl font-bold mb-8 text-slate-800">Job Analysis & Descriptions</h2>
+                <!-- Content preserved -->
+                <div class="grid lg:grid-cols-2 gap-8 mb-10"><div class="glass-panel p-8"><h4 class="text-xl font-bold text-slate-800 mb-4">The Reality: "Paper vs. Practice"</h4><div class="space-y-4 text-sm text-slate-600 leading-relaxed"><p><strong>Formal Documents Only:</strong> Official job descriptions exist but are rarely used.</p><p><strong>"Managerial Heartbeat":</strong> Responsibilities defined by daily urgency, not roles.</p><p><strong>No Structure:</strong> No defined levels (Junior/Senior). Growth is subjective.</p></div></div><div class="glass-panel p-8 border-l-4 border-red-500 bg-red-50/30"><h4 class="text-xl font-bold text-red-500 mb-4">Risks of Ambiguity</h4><ul class="space-y-3 text-sm text-slate-600"><li class="flex items-start gap-3"><i class="ph-bold ph-warning text-red-400 mt-1"></i> <strong>Role Confusion:</strong> Who owns what?</li><li class="flex items-start gap-3"><i class="ph-bold ph-warning text-red-400 mt-1"></i> <strong>Subjective Evaluation:</strong> Reviews based on opinion.</li><li class="flex items-start gap-3"><i class="ph-bold ph-warning text-red-400 mt-1"></i> <strong>Burnout:</strong> Overloading compliant employees.</li></ul></div></div>
+                <div class="glass-panel p-8 text-center mb-10"><h3 class="font-bold text-lg mb-2 text-slate-700">Interactive: The "Managerial Heartbeat" Test</h3><p class="text-sm text-slate-500 mb-6">Identify random assignments vs core role.</p><div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 inline-block w-full max-w-lg relative overflow-hidden"><div id="scope-task" class="text-xl font-bold text-slate-800 mb-2">Task: "Fix Database Bug"</div><p class="text-xs text-indigo-500 font-bold uppercase tracking-wider mb-6">Role: Junior Backend Dev</p><div class="flex justify-center gap-4"><button onclick="checkScope('in')" class="px-6 py-3 bg-green-100 text-green-700 rounded-lg font-bold hover:bg-green-200 transition flex items-center gap-2"><i class="ph-bold ph-check"></i> In Scope</button><button onclick="checkScope('out')" class="px-6 py-3 bg-red-100 text-red-700 rounded-lg font-bold hover:bg-red-200 transition flex items-center gap-2"><i class="ph-bold ph-x"></i> Out of Scope</button></div><div id="scope-feedback" class="mt-4 h-6 text-sm font-bold text-slate-600"></div></div></div>
+                <div class="glass-panel p-8 bg-slate-900 text-white relative overflow-hidden"><div class="relative z-10"><div class="grid lg:grid-cols-2 gap-12 items-center"><div><h3 class="text-2xl font-bold mb-4 text-white">Evaluation & Recommendation</h3><p class="text-gray-300 mb-6 leading-relaxed">Move to <strong>Systematic Job Analysis</strong> to identify KSAs. This creates a legal and logical basis for hiring and pay.</p><div class="p-4 bg-indigo-500/20 border border-indigo-500/30 rounded-xl mb-6"><h5 class="text-indigo-300 font-bold text-sm uppercase mb-1">Why it is better:</h5><p class="text-sm text-indigo-100">Prevents "Managerial Heartbeat" and ensures fair evaluations.</p></div></div><div class="space-y-4"><h4 class="text-center font-bold text-gray-400 text-xs uppercase tracking-widest mb-2">Interactive: The KSA Framework</h4><div class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 cursor-pointer transition-all duration-300" onclick="toggleKSA(this)"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center text-xl font-bold">K</div><div class="flex-1"><h5 class="font-bold">Knowledge</h5><p class="text-xs text-gray-400">What they need to <em>know</em>.</p></div><i class="ph-bold ph-caret-down text-gray-500 group-hover:text-white transition"></i></div><div class="ksa-content hidden mt-3 pt-3 border-t border-white/10 text-sm text-blue-200">Example: Python syntax, SQL structures.</div></div><div class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 cursor-pointer transition-all duration-300" onclick="toggleKSA(this)"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-lg bg-purple-500 flex items-center justify-center text-xl font-bold">S</div><div class="flex-1"><h5 class="font-bold">Skills</h5><p class="text-xs text-gray-400">What they need to <em>do</em>.</p></div><i class="ph-bold ph-caret-down text-gray-500 group-hover:text-white transition"></i></div><div class="ksa-content hidden mt-3 pt-3 border-t border-white/10 text-sm text-purple-200">Example: Writing clean code, debugging.</div></div><div class="group bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 cursor-pointer transition-all duration-300" onclick="toggleKSA(this)"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-lg bg-pink-500 flex items-center justify-center text-xl font-bold">A</div><div class="flex-1"><h5 class="font-bold">Abilities</h5><p class="text-xs text-gray-400">Capacity to perform.</p></div><i class="ph-bold ph-caret-down text-gray-500 group-hover:text-white transition"></i></div><div class="ksa-content hidden mt-3 pt-3 border-t border-white/10 text-sm text-pink-200">Example: Analytical thinking, attention to detail.</div></div></div></div></div><div class="absolute -left-20 -top-20 w-80 h-80 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div></div>
+            </section>
+
+            <!-- TOPIC 5: TRAINING -->
+            <section id="topic5" class="content-card max-w-6xl mx-auto">
+                <div class="mb-6"><span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase">Topic 05</span></div>
+                <h2 class="text-4xl font-bold mb-8 text-slate-800">Training & Development</h2>
+                <!-- Content preserved -->
+                <div class="glass-panel p-8 mb-10"><h4 class="text-xl font-bold text-slate-800 mb-6">Current State: "Reactive & Technical"</h4><div class="grid md:grid-cols-2 gap-8"><div class="space-y-4"><div class="flex gap-4"><div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 shrink-0"><i class="ph-bold ph-wrench"></i></div><div><h5 class="font-bold text-slate-700">Strictly Technical</h5><p class="text-sm text-slate-500 leading-relaxed">Only when new tools are needed. No soft skills.</p></div></div><div class="flex gap-4"><div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 shrink-0"><i class="ph-bold ph-clock"></i></div><div><h5 class="font-bold text-slate-700">No Measurement</h5><p class="text-sm text-slate-500 leading-relaxed">No ROI tracking after courses.</p></div></div></div><div class="space-y-4"><div class="flex gap-4"><div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-500 shrink-0"><i class="ph-bold ph-warning"></i></div><div><h5 class="font-bold text-slate-700">Comfort Zone Culture</h5><p class="text-sm text-slate-500 leading-relaxed">Employees rarely ask for training.</p></div></div></div></div></div>
+                <div class="grid lg:grid-cols-2 gap-10 mb-10"><div class="flex flex-col justify-center"><h3 class="text-2xl font-bold text-indigo-700 mb-4">Evaluation & Recommendation</h3><p class="text-slate-600 mb-6 leading-relaxed">Adopt the <strong>ADDIE Model</strong> and measure with <strong>Kirkpatrick’s Levels</strong>.</p><div class="p-6 bg-white rounded-xl border-l-4 border-indigo-500 shadow-sm mb-6"><h5 class="text-sm font-bold text-indigo-900 uppercase mb-2">Why it is better:</h5><ul class="space-y-2 text-sm text-slate-600"><li class="flex items-start gap-2"><i class="ph-fill ph-check-circle text-green-500 mt-0.5"></i> <span><strong>Gen Z Focus:</strong> Blended Learning engages younger staff.</span></li><li class="flex items-start gap-2"><i class="ph-fill ph-check-circle text-green-500 mt-0.5"></i> <span><strong>ROI:</strong> Measuring results improves performance.</span></li></ul></div></div><div class="glass-panel p-8 bg-slate-50 border border-slate-200"><h4 class="text-center font-bold text-slate-400 text-xs uppercase tracking-widest mb-6">Interactive: Kirkpatrick's Model</h4><div class="flex flex-col gap-2 max-w-sm mx-auto"><div class="kp-level p-3 bg-indigo-600 text-white rounded text-center text-xs font-bold shadow-lg" onclick="showKP(4)">Level 4: RESULTS</div><div class="kp-level p-3 bg-indigo-500 text-white rounded text-center text-xs font-bold shadow-md w-[90%] mx-auto" onclick="showKP(3)">Level 3: BEHAVIOR</div><div class="kp-level p-3 bg-indigo-400 text-white rounded text-center text-xs font-bold shadow-sm w-[80%] mx-auto" onclick="showKP(2)">Level 2: LEARNING</div><div class="kp-level p-3 bg-indigo-300 text-white rounded text-center text-xs font-bold w-[70%] mx-auto" onclick="showKP(1)">Level 1: REACTION</div></div><div id="kp-desc" class="mt-4 text-center text-xs text-slate-500 h-8 font-medium">Click a level to define it.</div></div></div>
+                <div class="glass-panel p-10 bg-slate-900 text-white text-center relative overflow-hidden"><h3 class="text-2xl font-bold mb-8 relative z-10">Interactive: The ADDIE Workflow</h3><div class="flex flex-wrap justify-center gap-4 relative z-10" id="addie-grid"><div class="addie-step w-24 h-24 rounded-full border-2 border-red-500 bg-red-500/10 flex items-center justify-center text-red-400 font-bold text-sm">Analysis</div><div class="addie-step w-24 h-24 rounded-full border-2 border-orange-500 bg-orange-500/10 flex items-center justify-center text-orange-400 font-bold text-sm">Design</div><div class="addie-step w-24 h-24 rounded-full border-2 border-yellow-500 bg-yellow-500/10 flex items-center justify-center text-yellow-400 font-bold text-sm">Develop</div><div class="addie-step w-24 h-24 rounded-full border-2 border-blue-500 bg-blue-500/10 flex items-center justify-center text-blue-400 font-bold text-sm">Implement</div><div class="addie-step w-24 h-24 rounded-full border-2 border-green-500 bg-green-500/10 flex items-center justify-center text-green-400 font-bold text-sm">Evaluate</div></div><div class="mt-10 relative z-10"><button onclick="runAddieCycle()" class="px-8 py-3 bg-white text-slate-900 rounded-full font-bold shadow-lg hover:bg-gray-100 transition flex items-center gap-2 mx-auto"><i class="ph-fill ph-play-circle text-xl text-indigo-600"></i> Run Cycle</button><p id="addie-status" class="mt-4 text-sm text-gray-400 min-h-[20px]">Click to visualize.</p></div><div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none"></div></div>
+            </section>
+
+            <!-- TOPIC 6: TALENT -->
+            <section id="topic6" class="content-card max-w-6xl mx-auto">
+                <div class="mb-6"><span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase">Topic 06</span></div>
+                <h2 class="text-4xl font-bold mb-8 text-slate-800">Talent Management & Succession</h2>
+                <!-- Content preserved -->
+                <div class="grid md:grid-cols-2 gap-8 mb-10"><div class="glass-panel p-8 border-l-4 border-red-400 relative overflow-hidden group"><div class="absolute right-0 top-0 w-32 h-32 bg-red-400/10 rounded-full -mr-10 -mt-10 transition group-hover:scale-150"></div><h4 class="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2"><i class="ph-fill ph-warning-circle text-red-400"></i> The Technical Trap</h4><p class="text-sm text-slate-600 leading-relaxed mb-4">Strong specialists are promoted to managers but fail due to lack of soft skills.</p><div class="bg-red-50 p-3 rounded-lg border border-red-100 text-xs font-bold text-red-600 text-center">"Great Coder ≠ Great Leader"</div></div><div class="glass-panel p-8 border-l-4 border-purple-400 relative overflow-hidden group"><div class="absolute right-0 top-0 w-32 h-32 bg-purple-400/10 rounded-full -mr-10 -mt-10 transition group-hover:scale-150"></div><h4 class="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2"><i class="ph-fill ph-users-three text-purple-400"></i> Gen Z Motivation</h4><p class="text-sm text-slate-600 leading-relaxed mb-4">Employees prefer flexibility and tasks over titles. Management is often seen as a burden.</p><div class="bg-purple-50 p-3 rounded-lg border border-purple-100 text-xs font-bold text-purple-600 text-center">Need: Technical Tracks & Freedom</div></div></div>
+                <div class="glass-panel p-8 bg-slate-50 border border-slate-200"><div class="text-center mb-8"><h3 class="text-2xl font-bold text-slate-800 mb-2">Evaluation & Recommendation</h3><p class="text-slate-500">Use the <strong>9-Box Talent Grid</strong> to map Performance vs. Potential.</p></div><div class="grid lg:grid-cols-3 gap-8"><div class="lg:col-span-2"><div class="relative pl-8 pb-8"><div class="absolute left-0 top-0 bottom-8 flex items-center justify-center w-6"><span class="rotate-[-90deg] text-xs font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">Potential</span></div><div class="grid grid-cols-3 gap-3 aspect-square"><div class="nine-box-cell bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200" onclick="gridInfo('Diamond')"><div class="text-2xl mb-1">💎</div><div>Rough Diamond</div></div><div class="nine-box-cell bg-green-100 text-green-800 border-green-200 hover:bg-green-200" onclick="gridInfo('Future')"><div class="text-2xl mb-1">🚀</div><div>Future Star</div></div><div class="nine-box-cell bg-indigo-600 text-white shadow-lg ring-4 ring-indigo-100 transform scale-105 z-10" onclick="gridInfo('Star')"><div class="text-2xl mb-1">🌟</div><div>Consistent Star</div></div><div class="nine-box-cell bg-orange-50 text-orange-800 border-orange-100 hover:bg-orange-100" onclick="gridInfo('Inconsistent')"><div class="text-2xl mb-1">❓</div><div>Inconsistent</div></div><div class="nine-box-cell bg-blue-50 text-blue-800 border-blue-100 hover:bg-blue-100" onclick="gridInfo('Core')"><div class="text-2xl mb-1">⚓</div><div>Core Player</div></div><div class="nine-box-cell bg-green-100 text-green-800 border-green-200 hover:bg-green-200" onclick="gridInfo('High')"><div class="text-2xl mb-1">🏆</div><div>High Performer</div></div><div class="nine-box-cell bg-red-100 text-red-800 border-red-200 hover:bg-red-200" onclick="gridInfo('Risk')"><div class="text-2xl mb-1">⚠️</div><div>Talent Risk</div></div><div class="nine-box-cell bg-blue-50 text-blue-800 border-blue-100 hover:bg-blue-100" onclick="gridInfo('Effective')"><div class="text-2xl mb-1">🔧</div><div>Effective</div></div><div class="nine-box-cell bg-blue-50 text-blue-800 border-blue-100 hover:bg-blue-100" onclick="gridInfo('Pro')"><div class="text-2xl mb-1">🎓</div><div>Trusted Pro</div></div></div><div class="absolute bottom-0 left-8 right-0 flex items-center justify-center h-6"><span class="text-xs font-bold uppercase tracking-widest text-slate-400">Performance</span></div></div></div><div class="flex flex-col justify-center h-full"><div id="grid-detail" class="bg-white p-6 rounded-2xl shadow-sm border border-indigo-100 h-full flex flex-col justify-center text-center transition-all duration-300"><div class="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-500 text-3xl animate-pulse"><i class="ph-fill ph-hand-tap"></i></div><h4 class="font-bold text-slate-800 mb-2">Select a Profile</h4><p class="text-sm text-slate-500">Click on a box in the grid to see the tailored HR strategy.</p></div></div></div><div class="mt-8 p-6 bg-indigo-900 text-white rounded-xl flex items-start gap-4"><i class="ph-fill ph-lightbulb text-3xl text-yellow-400 shrink-0 mt-1"></i><div><h5 class="font-bold text-lg mb-2">Why it is better:</h5><p class="text-indigo-100 text-sm leading-relaxed">This tool creates a <strong>Talent Pipeline</strong>. It allows you to identify "Stars" for leadership while rewarding "Trusted Pros" (High Performance / Low Potential) with complex technical tasks and raises <em>without</em> forcing them into management roles they hate.</p></div></div></div>
+            </section>
+
+            <!-- TOPIC 7: PERFORMANCE (IMPROVED) -->
+            <section id="topic7" class="content-card max-w-6xl mx-auto">
+                <div class="mb-6"><span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase">Topic 07</span></div>
+                <h2 class="text-4xl font-bold mb-8 text-slate-800">Performance Management</h2>
+                
+                <div class="grid lg:grid-cols-2 gap-8 mb-10">
+                    <div class="glass-panel p-8">
+                        <h4 class="text-xl font-bold text-slate-800 mb-4">Current Challenges</h4>
+                        <ul class="space-y-4 text-sm text-slate-600">
+                            <li class="flex items-start gap-3">
+                                <i class="ph-bold ph-x-circle text-red-500 mt-1"></i>
+                                <span><strong>No Clear Structure:</strong> Evaluations are informal conversations based on personal opinions rather than data.</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="ph-bold ph-x-circle text-red-500 mt-1"></i>
+                                <span><strong>Unrealistic KPIs:</strong> Goals are often vague or changed mid-process, leading to confusion.</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="ph-bold ph-x-circle text-red-500 mt-1"></i>
+                                <span><strong>Rater Bias:</strong> Managers suffer from the "Halo Effect" (one good trait masks poor performance) or "Recency Effect" (judging only recent work).</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="glass-panel p-8 border-l-4 border-indigo-500 bg-white/60">
+                        <h4 class="text-xl font-bold text-indigo-700 mb-4">Recommendation: BARS</h4>
+                        <p class="text-sm text-slate-600 mb-4 leading-relaxed">
+                            Move to <strong>Behaviorally Anchored Rating Scales (BARS)</strong> or MBO. This reduces bias by linking ratings to specific, observable behaviors.
+                        </p>
+                        <div class="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                            <h5 class="text-xs font-bold uppercase text-indigo-900 mb-2">Why it is better:</h5>
+                            <p class="text-sm text-indigo-800">Structured evaluations make the process developmental, provide a legal basis for decisions, and ensure fairness across teams.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive: Bias Breaker -->
+                <div class="glass-panel p-8 bg-slate-900 text-white text-center">
+                    <h3 class="text-xl font-bold mb-6">Interactive: The Bias Breaker</h3>
+                    <div class="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
+                        <!-- Subjective Card -->
+                        <div class="bg-white/10 p-6 rounded-xl border border-white/20 cursor-pointer hover:bg-white/20 transition group" onclick="fixBias(this)">
+                            <div class="text-red-400 font-bold text-xs uppercase mb-2">Subjective (Bias Risk)</div>
+                            <div class="text-lg font-medium mb-4">"He is a hard worker."</div>
+                            <button class="px-4 py-2 bg-red-500 hover:bg-red-400 rounded-lg text-xs font-bold transition">Fix This Eval</button>
+                            <div class="hidden mt-4 pt-4 border-t border-white/20 text-green-400 text-sm animate-fade-in">
+                                <strong>BARS (Objective):</strong> "Completes 95% of tasks ahead of deadline with zero errors."
+                            </div>
+                        </div>
+
+                        <!-- Recency Card -->
+                        <div class="bg-white/10 p-6 rounded-xl border border-white/20 cursor-pointer hover:bg-white/20 transition group" onclick="fixBias(this)">
+                            <div class="text-red-400 font-bold text-xs uppercase mb-2">Recency Bias</div>
+                            <div class="text-lg font-medium mb-4">"She messed up yesterday."</div>
+                            <button class="px-4 py-2 bg-red-500 hover:bg-red-400 rounded-lg text-xs font-bold transition">Fix This Eval</button>
+                            <div class="hidden mt-4 pt-4 border-t border-white/20 text-green-400 text-sm animate-fade-in">
+                                <strong>Full Year View:</strong> "Despite one recent error, she met all Q1-Q3 targets consistently."
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TOPIC 8: COMPENSATION (IMPROVED) -->
+            <section id="topic8" class="content-card max-w-6xl mx-auto">
+                <div class="mb-6"><span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase">Topic 08</span></div>
+                <h2 class="text-4xl font-bold mb-8 text-slate-800">Compensation & Benefits</h2>
+                
+                <div class="glass-panel p-8 mb-10">
+                    <h4 class="text-xl font-bold text-slate-800 mb-4">Current Reality: Hygiene Factors</h4>
+                    <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+                        OptimoGroup offers standard benefits (Salary, Health Insurance, VITA card). However, according to <strong>Herzberg’s Two-Factor Theory</strong>, these are merely hygiene factors. Their presence prevents dissatisfaction but does not actively motivate.
+                    </p>
+                    <div class="p-4 bg-red-50 border border-red-100 rounded-xl mb-6">
+                        <h5 class="text-sm font-bold text-red-600 mb-1">The Equity Problem</h5>
+                        <p class="text-xs text-red-500">Raises happen only via individual negotiation. This creates perceived unfairness and stress for employees who dislike negotiating.</p>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-8 mb-10">
+                    <div class="glass-panel p-8 border-l-4 border-green-500 bg-white/60">
+                        <h4 class="text-xl font-bold text-green-700 mb-4">Recommendation: Total Rewards</h4>
+                        <p class="text-sm text-slate-600 mb-4">Adopt a <strong>Total Rewards Model</strong> that includes intangible motivators like autonomy, mastery, and purpose.</p>
+                        <div class="p-4 bg-green-50 rounded-xl border border-green-100">
+                            <h5 class="text-xs font-bold uppercase text-green-800 mb-1">Why it is better:</h5>
+                            <p class="text-sm text-green-700">A transparent <strong>Pay-for-Performance</strong> system ensures Internal Equity, reducing the need for stressful individual negotiations.</p>
+                        </div>
+                    </div>
+
+                    <!-- Herzberg Sorter -->
+                    <div class="glass-panel p-6 bg-slate-50 border border-slate-200">
+                        <h4 class="text-center font-bold text-slate-600 text-xs uppercase mb-4">Interactive: Sort the Motivators</h4>
+                        <div class="grid grid-cols-2 gap-4 h-64">
+                            <div class="bg-red-100/50 rounded-xl p-4 border border-red-200">
+                                <h5 class="text-xs font-bold text-red-500 text-center mb-2">Hygiene (Prevent Pain)</h5>
+                                <div id="hygiene-zone" class="space-y-2"></div>
+                            </div>
+                            <div class="bg-green-100/50 rounded-xl p-4 border border-green-200">
+                                <h5 class="text-xs font-bold text-green-500 text-center mb-2">Motivators (Drive Growth)</h5>
+                                <div id="motivator-zone" class="space-y-2"></div>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 justify-center mt-4" id="item-pool">
+                            <button onclick="sortItem(this, 'hygiene')" class="px-3 py-1 bg-white border shadow-sm rounded-lg text-xs font-bold hover:bg-gray-50">Salary</button>
+                            <button onclick="sortItem(this, 'motivator')" class="px-3 py-1 bg-white border shadow-sm rounded-lg text-xs font-bold hover:bg-gray-50">Recognition</button>
+                            <button onclick="sortItem(this, 'hygiene')" class="px-3 py-1 bg-white border shadow-sm rounded-lg text-xs font-bold hover:bg-gray-50">Insurance</button>
+                            <button onclick="sortItem(this, 'motivator')" class="px-3 py-1 bg-white border shadow-sm rounded-lg text-xs font-bold hover:bg-gray-50">Autonomy</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TOPIC 9: TURNOVER (IMPROVED) -->
+            <section id="topic9" class="content-card max-w-6xl mx-auto">
+                <div class="mb-6"><span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase">Topic 09</span></div>
+                <h2 class="text-4xl font-bold mb-8 text-slate-800">Turnover & Retention</h2>
+                
+                <div class="grid lg:grid-cols-2 gap-8 mb-10">
+                    <div class="glass-panel p-8">
+                        <h4 class="text-xl font-bold text-slate-800 mb-4">The "Silent Drain"</h4>
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="text-5xl font-bold text-indigo-600">3-5%</div>
+                            <div class="text-sm text-slate-500 font-bold uppercase">Turnover Rate</div>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-4 leading-relaxed">
+                            While the number looks low, it hides <strong>Dysfunctional Turnover</strong>. High performers and senior specialists are leaving, while juniors stay to learn.
+                        </p>
+                        <div class="bg-red-50 p-4 rounded-xl border border-red-100">
+                            <p class="text-xs font-bold text-red-600 uppercase mb-1">Impact</p>
+                            <p class="text-sm text-red-500">Loss of intellectual capital and stability. Replacing a senior dev costs ~1.5x their annual salary.</p>
+                        </div>
+                    </div>
+
+                    <!-- STAY INTERVIEW INTERACTIVE (Replaces Cost Calc) -->
+                    <div class="glass-panel p-8 bg-slate-900 text-white">
+                        <h4 class="font-bold text-lg mb-6">Interactive: Stay Interview Strategy</h4>
+                        <p class="text-sm text-gray-400 mb-6">Don't wait for the exit. Select a risk factor to see the correct "Stay Question" to ask high performers.</p>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <button onclick="showStayQuestion('growth')" class="p-3 bg-white/10 hover:bg-indigo-600 rounded-lg text-xs font-bold transition border border-white/10">Risk: No Growth Path</button>
+                            <button onclick="showStayQuestion('value')" class="p-3 bg-white/10 hover:bg-pink-600 rounded-lg text-xs font-bold transition border border-white/10">Risk: Feeling Undervalued</button>
+                            <button onclick="showStayQuestion('offers')" class="p-3 bg-white/10 hover:bg-green-600 rounded-lg text-xs font-bold transition border border-white/10">Risk: External Offers</button>
+                            <button onclick="showStayQuestion('blockers')" class="p-3 bg-white/10 hover:bg-orange-500 rounded-lg text-xs font-bold transition border border-white/10">Risk: Frustration</button>
+                        </div>
+
+                        <div id="stay-q-display" class="p-6 bg-white/5 rounded-xl border border-white/10 min-h-[100px] flex items-center justify-center text-center">
+                            <p class="text-sm text-gray-400 italic">Select a risk to reveal the question.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-8 border-l-4 border-green-500">
+                    <h4 class="text-xl font-bold text-green-700 mb-4">Recommendation: Stay Interviews</h4>
+                    <p class="text-sm text-slate-600 mb-4">HR should conduct formal <strong>Stay Interviews</strong> with top talent to understand why they stay and what might make them leave.</p>
+                    <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-green-600">
+                        <i class="ph-fill ph-shield-check"></i> Proactive Retention Strategy
+                    </div>
+                </div>
+            </section>
+
+            <!-- TOPIC 10: CONCLUSION (IMPROVED - NO QUIZ) -->
+            <section id="topic10" class="content-card max-w-6xl mx-auto">
+                <div class="mb-6"><span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase">Topic 10</span></div>
+                <h2 class="text-4xl font-bold mb-8 text-slate-800">Conclusion & Strategic Roadmap</h2>
+                
+                <div class="glass-panel p-8 mb-10">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-4">Executive Summary</h3>
+                    <p class="text-lg text-slate-600 leading-relaxed mb-6">
+                        OptimoGroup has strong potential and a talented workforce. However, to sustain its rapid growth, it must transition from informal management to a structured, strategic HR system. Currently, HR processes rely on personal communication rather than clear systems, creating inequality and inefficiency.
+                    </p>
+                </div>
+
+                <!-- Interactive Roadmap Builder -->
+                <div class="glass-panel p-10 bg-slate-900 text-white text-center relative overflow-hidden">
+                    <h3 class="text-2xl font-bold mb-2 z-10 relative">Interactive: Build the Future Organization</h3>
+                    <p class="text-gray-400 mb-10 z-10 relative">Click the strategic pillars below to construct a stable foundation for growth.</p>
+                    
+                    <div class="grid grid-cols-5 gap-4 items-end h-64 mb-8 relative z-10 max-w-4xl mx-auto px-4">
+                        <!-- Pillars (Hidden initially) -->
+                        <div id="pillar-1" class="pillar h-[40%] bg-indigo-600 rounded-t-lg flex items-center justify-center text-xs font-bold transform translate-y-full opacity-0">Policies</div>
+                        <div id="pillar-2" class="pillar h-[55%] bg-purple-600 rounded-t-lg flex items-center justify-center text-xs font-bold transform translate-y-full opacity-0">Roles</div>
+                        <div id="pillar-3" class="pillar h-[70%] bg-pink-600 rounded-t-lg flex items-center justify-center text-xs font-bold transform translate-y-full opacity-0">Evaluation</div>
+                        <div id="pillar-4" class="pillar h-[85%] bg-red-500 rounded-t-lg flex items-center justify-center text-xs font-bold transform translate-y-full opacity-0">Training</div>
+                        <div id="pillar-5" class="pillar h-[100%] bg-green-500 rounded-t-lg flex items-center justify-center text-xs font-bold transform translate-y-full opacity-0">Trust</div>
+                    </div>
+
+                    <div class="flex flex-wrap justify-center gap-3 relative z-10">
+                        <button onclick="buildPillar(1)" class="px-4 py-2 bg-white/10 hover:bg-indigo-600 hover:text-white rounded-full text-xs font-bold transition border border-white/20">1. Clear Policies</button>
+                        <button onclick="buildPillar(2)" class="px-4 py-2 bg-white/10 hover:bg-purple-600 hover:text-white rounded-full text-xs font-bold transition border border-white/20">2. Define Roles</button>
+                        <button onclick="buildPillar(3)" class="px-4 py-2 bg-white/10 hover:bg-pink-600 hover:text-white rounded-full text-xs font-bold transition border border-white/20">3. Structure Performance</button>
+                        <button onclick="buildPillar(4)" class="px-4 py-2 bg-white/10 hover:bg-red-500 hover:text-white rounded-full text-xs font-bold transition border border-white/20">4. Invest in L&D</button>
+                        <button onclick="buildPillar(5)" class="px-4 py-2 bg-white/10 hover:bg-green-500 hover:text-white rounded-full text-xs font-bold transition border border-white/20">5. Build Trust</button>
+                    </div>
+
+                    <div id="finish-msg" class="mt-8 text-xl font-bold text-green-400 opacity-0 transition-opacity duration-500">
+                        Sustainable Competitive Advantage Achieved! 🚀
+                    </div>
+                    
+                    <button onclick="navigateTo('thankyou')" id="finish-btn" class="mt-6 px-8 py-3 bg-white text-slate-900 rounded-full font-bold shadow-lg opacity-0 pointer-events-none transition-all duration-500">Complete Case Study</button>
+
+                    <!-- Background Glow -->
+                    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-t from-indigo-900/50 to-transparent pointer-events-none"></div>
+                </div>
+            </section>
+
+            <!-- THANK YOU TAB -->
+            <section id="thankyou" class="content-card max-w-5xl mx-auto h-full flex flex-col items-center justify-center text-center">
+                <div class="glass-panel p-16 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10"></div>
+                    <div class="relative z-10">
+                        <div class="text-6xl mb-6 animate-bounce">👋</div>
+                        <h1 class="text-5xl font-bold text-slate-800 mb-6 tracking-tight">Thank You!</h1>
+                        <p class="text-xl text-slate-600 mb-8 max-w-lg mx-auto">
+                            Thank you for exploring the HR Transformation journey of OptimoGroup.
+                        </p>
+                        <div class="flex gap-4 justify-center">
+                            <button onclick="location.reload()" class="px-8 py-3 bg-slate-800 text-white rounded-xl font-bold shadow-lg hover:bg-slate-700 transition flex items-center gap-2">
+                                <i class="ph-bold ph-arrow-counter-clockwise"></i> Restart Presentation
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Decor -->
+                    <div class="absolute top-0 left-0 w-32 h-32 bg-yellow-400/20 rounded-full blur-3xl"></div>
+                    <div class="absolute bottom-0 right-0 w-40 h-40 bg-pink-400/20 rounded-full blur-3xl"></div>
+                </div>
+            </section>
+
+            <!-- QUIZ (Hidden from Nav, accessible if needed or kept as code artifact) -->
+            <section id="quiz" class="content-card max-w-3xl mx-auto text-center hidden">
+                <!-- Code preserved for logic consistency but hidden from UI flow -->
+            </section>
+
+        </div>
+    </main>
+
+    <!-- MODAL (Library) -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center"><h3 class="font-bold text-xl" id="modal-title">Library</h3><button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-red-100 hover:text-red-500"><i class="ph-bold ph-x"></i></button></div>
+            <div class="p-6 overflow-y-auto" id="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- LOGIC -->
+    <script>
+        // DATA
+        const topics = [
+            { id: 'topic1', title: 'Company Overview' },
+            { id: 'topic2', title: 'Role of HR' },
+            { id: 'topic3', title: 'Recruitment' },
+            { id: 'topic4', title: 'Job Analysis' },
+            { id: 'topic5', title: 'Training' },
+            { id: 'topic6', title: 'Talent Mgmt' },
+            { id: 'topic7', title: 'Performance' },
+            { id: 'topic8', title: 'Compensation' },
+            { id: 'topic9', title: 'Turnover' },
+            { id: 'topic10', title: 'Conclusion' },
+            { id: 'thankyou', title: 'Thank You' } // Added Thank You
+        ];
+
+        const libraryDocs = [
+            { icon: 'ph-file-text', name: 'OptimoGroup Regulations', tag: 'Exists (Unused)' },
+            { icon: 'ph-users', name: 'Workforce Plan Template', tag: 'Proposed' },
+            { icon: 'ph-list-checks', name: 'Interview Scorecard', tag: 'Proposed' },
+            { icon: 'ph-briefcase', name: 'Job Description (KSA)', tag: 'Proposed' },
+            { icon: 'ph-graduation-cap', name: 'ADDIE Training Map', tag: 'Proposed' },
+            { icon: 'ph-grid-four', name: '9-Box Grid', tag: 'Proposed' },
+            { icon: 'ph-chart-bar', name: 'BARS Eval Form', tag: 'Proposed' },
+            { icon: 'ph-gift', name: 'Total Rewards Strategy', tag: 'Proposed' },
+            { icon: 'ph-chat-circle-text', name: 'Stay Interview Qs', tag: 'Proposed' },
+        ];
+
+        let visitedTopics = new Set();
+        let pillarsBuilt = 0;
+
+        // INIT
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSidebar();
+            navigateTo('home');
+        });
+
+        function renderSidebar() {
+            const list = document.getElementById('sidebar-list');
+            list.innerHTML = topics.map(t => {
+                if(t.id === 'thankyou') return ''; // Hide Thank You from sidebar initially
+                return `<li>
+                    <button onclick="navigateTo('${t.id}')" id="btn-${t.id}" class="sidebar-link w-full text-left px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-r-lg">
+                        ${t.title}
+                    </button>
+                </li>`
+            }).join('');
+        }
+
+        function navigateTo(id) {
+            document.querySelectorAll('.content-card').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById(id);
+            if(target) {
+                target.classList.add('active');
+                gsap.fromTo(target, {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 0.5});
+            }
+            
+            // Sidebar active state
+            document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
+            const btn = document.getElementById(`btn-${id}`);
+            if(btn) btn.classList.add('active');
+
+            if(id !== 'home' && id !== 'thankyou') {
+                visitedTopics.add(id);
+                const pct = Math.round((visitedTopics.size / 10) * 100);
+                document.getElementById('global-progress').style.width = `${pct}%`;
+            }
+            document.getElementById('main-scroll').scrollTo(0,0);
+        }
+
+        // --- INTERACTIONS ---
+
+        // Topic 1: Growth Engine
+        function updateGrowthEngine() {
+            const a = parseInt(document.getElementById('ge-ability').value);
+            const m = parseInt(document.getElementById('ge-motivation').value);
+            const o = parseInt(document.getElementById('ge-opportunity').value);
+            
+            document.getElementById('val-a').innerText = a + "%";
+            document.getElementById('val-m').innerText = m + "%";
+            document.getElementById('val-o').innerText = o + "%";
+
+            const bar = document.getElementById('ge-bar');
+            const status = document.getElementById('ge-status');
+            const desc = document.getElementById('ge-desc');
+            const icon = document.getElementById('ge-icon');
+
+            const avg = (a + m + o) / 3;
+            bar.style.width = avg + "%";
+
+            if (a > 80 && m > 80 && o > 80) {
+                bar.classList.replace('bg-yellow-500', 'bg-green-500');
+                bar.classList.replace('bg-red-500', 'bg-green-500');
+                status.innerText = "Sustainable Growth"; status.className = "text-2xl font-bold mb-2 text-green-400"; desc.innerText = "The Golden Zone. High skills, high will, and room to grow."; icon.innerText = "🚀";
+            } else if (avg < 40) {
+                status.innerText = "Critical Failure"; status.className = "text-2xl font-bold mb-2 text-red-500"; desc.innerText = "System is failing. Immediate intervention needed."; icon.innerText = "🚨"; bar.className = "bg-red-500 h-2 transition-all duration-500";
+            } else {
+                status.innerText = "Operational"; status.className = "text-2xl font-bold mb-2 text-white"; desc.innerText = "System is running but not optimized."; icon.innerText = "⚙️"; bar.className = "bg-indigo-500 h-2 transition-all duration-500";
+            }
+        }
+
+        // Topic 2: Capacity Shifter
+        let adminLoad = 80, opsLoad = 20, stratLoad = 0;
+        function shiftCapacity(type) {
+            const result = document.getElementById('strat-result');
+            const title = document.getElementById('role-title');
+            
+            if (type === 'auto' && adminLoad > 50) { adminLoad -= 30; stratLoad += 30; document.getElementById('btn-auto').classList.add('opacity-50', 'pointer-events-none'); }
+            else if (type === 'hire' && opsLoad > 0) { opsLoad -= 20; stratLoad += 20; document.getElementById('btn-hire').classList.add('opacity-50', 'pointer-events-none'); }
+
+            document.getElementById('bar-admin').style.width = adminLoad + "%"; document.getElementById('bar-admin').innerText = adminLoad > 10 ? `Admin (${adminLoad}%)` : '';
+            document.getElementById('bar-ops').style.width = opsLoad + "%"; document.getElementById('bar-ops').innerText = opsLoad > 10 ? `Ops (${opsLoad}%)` : '';
+            document.getElementById('bar-strat').style.width = stratLoad + "%"; document.getElementById('bar-strat').innerText = stratLoad > 10 ? `Strat (${stratLoad}%)` : '';
+
+            if (stratLoad >= 50) {
+                result.classList.remove('hidden', 'opacity-0');
+                result.classList.add('translate-y-0', 'opacity-100');
+                title.innerText = "Strategic Partner"; title.classList.replace('text-red-400', 'text-green-400');
+            }
+        }
+
+        // Topic 3: RJP
+        function playRJP(type) {
+            const resultBox = document.getElementById('rjp-result');
+            resultBox.classList.remove('hidden');
+            if (type === 'real') {
+                resultBox.innerHTML = `<div class="flex items-center gap-3 text-left"><div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xl"><i class="ph-bold ph-check"></i></div><div><h5 class="font-bold text-green-700">Good Choice!</h5><p class="text-xs text-slate-600">The candidate appreciates honesty. Retention +1</p></div></div>`;
+            } else {
+                resultBox.innerHTML = `<div class="flex items-center gap-3 text-left"><div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 text-xl"><i class="ph-bold ph-x"></i></div><div><h5 class="font-bold text-red-600">Risky Move.</h5><p class="text-xs text-slate-600">They join expecting calm. Reality hits. They quit. Wasted Cost.</p></div></div>`;
+            }
+        }
+
+        // Topic 4: Scope
+        function checkScope(type) {
+            const task = document.getElementById('scope-task');
+            const feedback = document.getElementById('scope-feedback');
+            if(type === 'in') {
+                task.innerText = "Error! Not for Junior Devs."; task.classList.add('text-red-500'); feedback.innerText = "Result: Stress & Overload."; feedback.classList.add('text-red-500');
+            } else {
+                task.innerText = "Correct! Stick to Job Spec."; task.classList.remove('text-red-500'); task.classList.add('text-green-600'); feedback.innerText = "Result: Focused work."; feedback.classList.remove('text-red-500'); feedback.classList.add('text-green-600');
+            }
+            setTimeout(() => { task.innerText = 'Task: "Fix Database Bug"'; task.classList.remove('text-red-500', 'text-green-600'); feedback.innerText = ""; }, 3000);
+        }
+        function toggleKSA(el) {
+            const content = el.querySelector('.ksa-content');
+            const icon = el.querySelector('.ph-caret-down');
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden'); gsap.fromTo(content, {height: 0, opacity: 0}, {height: "auto", opacity: 1, duration: 0.3}); icon.style.transform = 'rotate(180deg)';
+            } else {
+                content.classList.add('hidden'); icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // Topic 5: ADDIE & Kirkpatrick
+        function showKP(level) {
+            const levels = {1: 'Level 1 - Reaction: Did they like it?', 2: 'Level 2 - Learning: Did they get skills?', 3: 'Level 3 - Behavior: Do they use it?', 4: 'Level 4 - Results: ROI?'};
+            document.getElementById('kp-desc').innerText = levels[level];
+        }
+        function runAddieCycle() {
+            const steps = document.querySelectorAll('.addie-step');
+            const status = document.getElementById('addie-status');
+            let i = 0;
+            const interval = setInterval(() => {
+                if(i > 0) steps[i-1].classList.remove('active', 'scale-110');
+                if(i < steps.length) {
+                    steps[i].classList.add('active', 'scale-110');
+                    status.innerText = ["Analyze", "Design", "Develop", "Implement", "Evaluate"][i];
+                    i++;
+                } else { clearInterval(interval); status.innerText = "Cycle Complete."; }
+            }, 600);
+        }
+
+        // Topic 6: Grid
+        function gridInfo(type) {
+            const strategies = {'Star': 'Protect & Reward.', 'Diamond': 'Invest in training.', 'Future': 'Challenge.', 'High': 'Keep technical.', 'Risk': 'Exit.', 'Core': 'Maintain.', 'Inconsistent': 'Coach.', 'Effective': 'Develop.', 'Pro': 'Retain.'};
+            document.getElementById('grid-detail').innerHTML = `<h4 class="font-bold text-indigo-700 mb-2">${type}</h4><p class="text-sm text-slate-600">${strategies[type]}</p>`;
+        }
+
+        // Topic 7: Bias Breaker
+        function fixBias(el) {
+            const hidden = el.querySelector('.hidden');
+            hidden.classList.remove('hidden');
+            el.querySelector('button').remove();
+        }
+
+        // Topic 8: Sorter
+        function sortItem(btn, type) {
+            btn.remove();
+            const zone = document.getElementById(type === 'hygiene' ? 'hygiene-zone' : 'motivator-zone');
+            const div = document.createElement('div');
+            div.className = "p-2 bg-white rounded shadow text-xs font-bold text-center text-slate-600 border border-gray-100";
+            div.innerText = btn.innerText;
+            zone.appendChild(div);
+        }
+
+        // Topic 9: Stay Interview Questions
+        function showStayQuestion(riskType) {
+            const display = document.getElementById('stay-q-display');
+            const questions = {
+                'growth': '<span class="text-indigo-400 font-bold">Ask:</span> "What skills do you want to learn in the next 6 months to feel you are growing?"',
+                'value': '<span class="text-pink-400 font-bold">Ask:</span> "When was the last time you felt truly recognized for your work?"',
+                'offers': '<span class="text-green-400 font-bold">Ask:</span> "If you were to leave us tomorrow, what would be the main reason?"',
+                'blockers': '<span class="text-orange-400 font-bold">Ask:</span> "What is one thing that frustrates you daily that I can help fix?"'
+            };
+            display.innerHTML = `<p class="text-lg text-white font-medium animate-fade-in">${questions[riskType]}</p>`;
+        }
+
+        // Topic 10: Pillar Builder
+        function buildPillar(num) {
+            const pillar = document.getElementById(`pillar-${num}`);
+            if (!pillar.classList.contains('built')) {
+                pillar.classList.add('built');
+                pillarsBuilt++;
+                if(pillarsBuilt === 5) {
+                    document.getElementById('finish-msg').classList.remove('opacity-0');
+                    document.getElementById('finish-btn').classList.remove('opacity-0', 'pointer-events-none');
+                }
+            }
+        }
+
+        // MODALS
+        function openModal(type) {
+            const modal = document.getElementById('modal-overlay');
+            const content = document.getElementById('modal-content');
+            modal.classList.remove('hidden');
+            if(type === 'library') {
+                document.getElementById('modal-title').innerText = "Evidence Library";
+                content.innerHTML = `<div class="grid gap-3">` + libraryDocs.map(doc => `
+                    <div class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-indigo-50 border border-gray-100">
+                        <div class="w-10 h-10 bg-white rounded flex items-center justify-center text-indigo-500 shadow-sm mr-4"><i class="ph-fill ${doc.icon} text-xl"></i></div>
+                        <div><div class="font-bold text-sm text-slate-700">${doc.name}</div><div class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">${doc.tag}</div></div>
+                    </div>`).join('') + `</div>`;
+            }
+        }
+        function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
+
+    </script>
+</body>
+</html>
